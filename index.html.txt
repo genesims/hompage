@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>파일 업로드/다운로드</title>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js"></script>
+</head>
+<body>
+    <h2>파일 업로드 및 다운로드</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">업로드</button>
+    <p id="status"></p>
+    <h3>업로드된 파일</h3>
+    <ul id="fileList"></ul>
+
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+
+        function uploadFile() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                alert("파일을 선택하세요.");
+                return;
+            }
+
+            const storageRef = storage.ref('uploads/' + file.name);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    document.getElementById('status').innerText = "업로드 중...";
+                }, 
+                (error) => {
+                    alert("업로드 실패: " + error.message);
+                }, 
+                () => {
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        document.getElementById('status').innerText = "업로드 완료!";
+                        const fileList = document.getElementById('fileList');
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="${downloadURL}" target="_blank">${file.name}</a>`;
+                        fileList.appendChild(li);
+                    });
+                }
+            );
+        }
+    </script>
+</body>
+</html>
